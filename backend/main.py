@@ -47,5 +47,12 @@ def create_product(request: Request, name: str = Form(), image_unique_id: str = 
             cursor.execute("INSERT INTO products (name, image_unique_id, minio_image_key) VALUES (%s, %s, %s) ON CONFLICT (image_unique_id) DO NOTHING", (name, image_unique_id, key))
     return {"status": "done"}
 
+@app.get("/products")
+def get_products(request: Request):
+    with request.app.state.pool.connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id, name, created_at FROM products ORDER BY id DESC")
+            products = cursor.fetchall()
+            return {"products": [{"id": p[0], "name": p[1], "created_at": p[2]} for p in products]}
 
 
