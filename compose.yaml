@@ -1,0 +1,11 @@
+services:
+  db:
+    image: postgres:18
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    ports:
+      - 127.0.0.1:5434:5432
+volumes:
+  pgdata:      
