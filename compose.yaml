@@ -7,5 +7,21 @@ services:
       - pgdata:/var/lib/postgresql
     ports:
       - 127.0.0.1:5434:5432
+  minio:
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+
+    command: server /data --console-address ":9001"
+    ports:
+      - 127.0.0.1:9000:9000
+      - 127.0.0.1:9001:9001
+    volumes:
+    - miniodata:/data  
+
+
 volumes:
-  pgdata:      
+  pgdata: 
+  miniodata:
+       
