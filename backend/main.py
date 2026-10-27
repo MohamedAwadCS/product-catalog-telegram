@@ -8,7 +8,7 @@ from minio import Minio
 
 url = os.environ["DATABASE_URL"]
 
-pool = ConnectionPool(url, open=False) 
+pool = ConnectionPool(url, open=False, check=ConnectionPool.check_connection) 
 
 client = Minio(
     endpoint=os.environ["MINIO_ENDPOINT"],
