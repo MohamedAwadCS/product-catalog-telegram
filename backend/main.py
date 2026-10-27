@@ -1,4 +1,6 @@
-from fastapi import FastAPI, Request, Form, UploadFile, File
+from urllib import request
+
+from fastapi import FastAPI, Request, Form, UploadFile, File, HTTPException, Response
 from contextlib import asynccontextmanager
 from psycopg_pool import ConnectionPool
 import os
@@ -56,3 +58,16 @@ def get_products(request: Request):
             return {"products": [{"id": p[0], "name": p[1], "created_at": p[2]} for p in products]}
 
 
+@app.get("/products/{id}/photo")
+def get_product_photo(request: Request, id: int):
+    with request.app.state.pool.connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT minio_image_key FROM products WHERE id = %s", (id,))
+            result = cursor.fetchone()
+            if not result:
+                raise HTTPException(status_code=404)
+
+    bucket = request.app.state.bucket
+    key = result[0]
+    data = request.app.state.minio.get_object(bucket, key).read()
+    return Response(content=data, media_type="image/jpeg")
