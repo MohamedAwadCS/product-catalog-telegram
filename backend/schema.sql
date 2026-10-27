@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS products (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name varchar(255) NOT NULL,
+    minio_image_key varchar(255) UNIQUE NOT NULL,
+    image_unique_id varchar(255) UNIQUE NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL 
+);
