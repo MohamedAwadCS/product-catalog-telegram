@@ -43,6 +43,15 @@ def ready(request: Request):
 @app.post("/products")
 def create_product(request: Request, name: str = Form(), image_unique_id: str = Form(), photo: UploadFile = File()):
     key = f"products/{image_unique_id}.jpg"
+
+    # Checking and validating inputs
+    name = name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Name is needed")
+
+    if not photo.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Invalid image type")
+
     request.app.state.minio.put_object(request.app.state.bucket, key, photo.file, length=photo.size, content_type=photo.content_type)
     with request.app.state.pool.connection() as connection:
         with connection.cursor() as cursor:
