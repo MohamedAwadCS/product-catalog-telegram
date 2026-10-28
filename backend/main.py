@@ -1,14 +1,15 @@
-from urllib import request
-
 from fastapi import FastAPI, Request, Form, UploadFile, File, HTTPException, Response
 from contextlib import asynccontextmanager
 from psycopg_pool import ConnectionPool
 import os
 from minio import Minio
+from aiogram import Bot, Dispatcher
+from aiogram.types import Update
 
 url = os.environ["DATABASE_URL"]
 
 pool = ConnectionPool(url, open=False, check=ConnectionPool.check_connection) 
+
 
 client = Minio(
     endpoint=os.environ["MINIO_ENDPOINT"],
@@ -16,6 +17,10 @@ client = Minio(
     secret_key=os.environ["MINIO_ROOT_PASSWORD"],
     secure=False
 )
+
+# AIOgram bot setup
+bot = Bot(token=os.environ["TELEGRAM_BOT_TOKEN"])
+dp = Dispatcher()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -80,3 +85,11 @@ def get_product_photo(request: Request, id: int):
     key = result[0]
     data = request.app.state.minio.get_object(bucket, key).read()
     return Response(content=data, media_type="image/jpeg")
+
+@app.post("/webhook")
+async def webhook(request: Request):
+    if request.headers.get("X-Telegram-Bot-Api-Secret-Token") != os.environ["WEBHOOK_SECRET"]:
+        raise HTTPException(status_code=403, detail="Invalid")
+    update = Update.model_validate(await request.json(), context={"bot": bot})
+    await dp.feed_update(bot,update)
+    return {"ok": True}
