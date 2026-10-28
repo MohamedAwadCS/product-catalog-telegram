@@ -3,8 +3,12 @@ from contextlib import asynccontextmanager
 from psycopg_pool import ConnectionPool
 import os
 from minio import Minio
+
 from aiogram import Bot, Dispatcher
 from aiogram.types import Update
+
+from aiogram.filters import CommandStart
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 
 url = os.environ["DATABASE_URL"]
 
@@ -21,6 +25,14 @@ client = Minio(
 # AIOgram bot setup
 bot = Bot(token=os.environ["TELEGRAM_BOT_TOKEN"])
 dp = Dispatcher()
+
+@dp.message(CommandStart())
+async def start_command(message: Message):
+    button = InlineKeyboardButton(text="Catalog", web_app=WebAppInfo(url=os.environ["CATALOG_URL"]))
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button]])
+
+    # i kept the message in russian because it was specified in the task requirements but you can change it to english if you want
+    await message.answer("У меня есть товар", reply_markup=keyboard)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -93,3 +105,5 @@ async def webhook(request: Request):
     update = Update.model_validate(await request.json(), context={"bot": bot})
     await dp.feed_update(bot,update)
     return {"ok": True}
+
+
