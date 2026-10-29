@@ -27,6 +27,7 @@ bot = Bot(token=os.environ["TELEGRAM_BOT_TOKEN"])
 dp = Dispatcher()
 
 ADMIN_ID = int(os.environ["ADMIN_ID"])
+BUCKET = os.environ["MINIO_BUCKET"]
 
 @dp.message(CommandStart())
 async def start_command(message: Message):
@@ -77,10 +78,17 @@ def ready(request: Request):
             cursor.execute("SELECT 1")
             return {"status": "ready"}
 
+def save_product(name, image_unique_id, file, size):
+    key = f"products/{image_unique_id}.jpg"
+    client.put_object(BUCKET, key, file, length=size, content_type="image/jpeg")
+    with pool.connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("INSERT INTO products (name, image_unique_id, minio_image_key) VALUES (%s, %s, %s) ON CONFLICT (image_unique_id) DO NOTHING", (name, image_unique_id, key))    
+
         
 @app.post("/products")
 def create_product(request: Request, name: str = Form(), image_unique_id: str = Form(), photo: UploadFile = File()):
-    key = f"products/{image_unique_id}.jpg"
+    
 
     # Checking and validating inputs
     name = name.strip()
@@ -89,12 +97,10 @@ def create_product(request: Request, name: str = Form(), image_unique_id: str = 
 
     if not photo.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Invalid image type")
-
-    request.app.state.minio.put_object(request.app.state.bucket, key, photo.file, length=photo.size, content_type=photo.content_type)
-    with request.app.state.pool.connection() as connection:
-        with connection.cursor() as cursor:
-            cursor.execute("INSERT INTO products (name, image_unique_id, minio_image_key) VALUES (%s, %s, %s) ON CONFLICT (image_unique_id) DO NOTHING", (name, image_unique_id, key))
+    
+    save_product(name, image_unique_id, photo.file, photo.size)
     return {"status": "done"}
+
 
 @app.get("/products")
 def get_products(request: Request):
