@@ -1,0 +1,32 @@
+
+body {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+  font-family: sans-serif;
+  text-align: center;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  margin-bottom: 24px;
+}
+
+img {
+  display: block;
+  margin: 8px auto 0;
+  max-width: 100%;
+  height: auto;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}
+
+
