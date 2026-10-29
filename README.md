@@ -1,4 +1,4 @@
-# INVIX Test Catalog
+# Product Catalog Telegram
 
 This is a small product catalog. The admin creates products from a Telegram bot (one photo with the product name as the caption), and anyone can view them on a Next.js catalog page, in the browser or inside Telegram as a TMA.
 
