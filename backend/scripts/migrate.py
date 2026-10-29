@@ -3,7 +3,7 @@ from pathlib import Path
 import psycopg
 from minio import Minio
 
-text = Path(__file__).parent.joinpath("schema.sql").read_text()
+text = Path(__file__).parent.parent.joinpath("schema.sql").read_text()
 db_url = os.environ["DATABASE_URL"]
 
 with psycopg.connect(db_url) as connection:
