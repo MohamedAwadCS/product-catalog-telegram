@@ -3,6 +3,7 @@ name = "invix-backend"
 version = "0.1.0"
 requires-python = ">=3.14.6"
 dependencies = [
+    "aiogram>=3.31.0",
     "fastapi[standard]>=0.162.0",
     "minio>=7.2.20",
     "psycopg-pool>=3.3.3",
