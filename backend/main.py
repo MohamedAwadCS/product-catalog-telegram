@@ -4,8 +4,8 @@ from psycopg_pool import ConnectionPool
 import os
 from minio import Minio
 
-from aiogram import Bot, Dispatcher
-from aiogram.types import Update
+from aiogram import Bot, Dispatcher, F
+from aiogram.types import Update, CallbackQuery
 
 from aiogram.filters import CommandStart
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
@@ -26,13 +26,34 @@ client = Minio(
 bot = Bot(token=os.environ["TELEGRAM_BOT_TOKEN"])
 dp = Dispatcher()
 
+ADMIN_ID = int(os.environ["ADMIN_ID"])
+
 @dp.message(CommandStart())
 async def start_command(message: Message):
     button = InlineKeyboardButton(text="Catalog", web_app=WebAppInfo(url=os.environ["CATALOG_URL"]))
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button]])
+    rows = [[button]]
+
+    if message.from_user.id == ADMIN_ID:
+        rows.append([InlineKeyboardButton(text="Create Product", callback_data="create_product")])
+        
+    keyboard = InlineKeyboardMarkup(inline_keyboard=rows)
 
     # i kept the message in russian because it was specified in the task requirements but you can change it to english if you want
     await message.answer("У меня есть товар", reply_markup=keyboard)
+
+    
+    
+
+@dp.callback_query(F.data == "create_product")
+async def create_product_button(callback: CallbackQuery):
+    if callback.from_user.id != ADMIN_ID:
+        await callback.answer("Access is not allowed")
+        return
+
+    await callback.message.answer("Send one image with the product name as its caption")
+    await callback.answer()
+    
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
